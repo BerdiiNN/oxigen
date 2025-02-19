@@ -1,11 +1,13 @@
 package imgops
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"io"
 	"os"
 	"path"
+	"strings"
 
 	_ "golang.org/x/image/webp"
 
