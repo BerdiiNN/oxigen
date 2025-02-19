@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"image/color"
 	"net/http"
 	"net/url"
