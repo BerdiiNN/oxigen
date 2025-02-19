@@ -38,6 +38,20 @@ type Point struct {
 func GetRemote(href string) (image.Image, func(), error) {
 	// Fetch image
 	res := httpx.Request("GET", href).Do()
+	if res == nil || res.Body == nil {
+		return nil, nil, fmt.Errorf("failed to get a valid response from %s", href)
+	}
+	// Check for HTTP status code
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
+	
+	// Optionally, check Content-Type header
+	contentType := res.Header.Get("Content-Type")
+	if !strings.HasPrefix(contentType, "image/") {
+		return nil, nil, fmt.Errorf("URL did not return an image; got %s", contentType)
+	}
+
 	// Decode into bytes
 	resbts, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -55,20 +69,21 @@ func GetRemote(href string) (image.Image, func(), error) {
 	}
 	// Write bytes into temp file
 	if _, err := resfile.Write(resbts); err != nil {
-		return nil, nil, err
+		return nil, cleanup, err
 	}
 	// Close file
 	if err := resfile.Close(); err != nil {
-		return nil, nil, err
+		return nil, cleanup, err
 	}
 	// Load into object
 	obj, err := gg.LoadImage(resfile.Name())
 	if err != nil {
-		return nil, nil, err
+		return nil, cleanup, err
 	}
 	// Return
 	return obj, cleanup, nil
 }
+
 
 // RenderText is a method to render a given text
 // with parameters on given context and location.

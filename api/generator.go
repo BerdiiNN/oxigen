@@ -109,9 +109,9 @@ func Generator(w http.ResponseWriter, r *http.Request) {
 		// Load background
 		bg, cleanup, err := imgops.GetRemote(query.Background)
 		if err != nil {
-			panic(err)
+			http.Error(w, fmt.Sprintf("Error loading background: %v", err), http.StatusBadRequest)
+			return
 		}
-		// Defer temp file cleanup
 		defer cleanup()
 		// Resize
 		bg = imaging.Fill(bg, img.Width(), img.Height(), imaging.Center, imaging.Lanczos)
@@ -188,21 +188,21 @@ func Generator(w http.ResponseWriter, r *http.Request) {
 		// Load logo
 		logo, cleanup, err := imgops.GetRemote(query.Logo)
 		if err != nil {
-			panic(err)
+			http.Error(w, fmt.Sprintf("Error loading logo: %v", err), http.StatusBadRequest)
+			return
 		}
-		// Defer temp file cleanup
 		defer cleanup()
-		// Resize
+		// Resize if needed
 		if query.LogoScale != 0 {
 			logo = imaging.Resize(logo, int(float64(logo.Bounds().Dx())*query.LogoScale), 0, imaging.Lanczos)
 		}
 		// Define position
 		x := float64(img.Width()) - float64(logo.Bounds().Dx()) - marginLogoX
 		y := float64(img.Height()) - float64(logo.Bounds().Dy()) - marginLogoY
-		// Align
+		// Align adjustments
 		x = x + float64(query.LogoAlignX)
 		y = y + float64(query.LogoAlignY)
-		// Write to image context
+		// Draw logo on image context
 		img.DrawImage(logo, int(x), int(y))
 	}
 	// Generate unique og file
