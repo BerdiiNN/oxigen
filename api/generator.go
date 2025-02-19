@@ -8,9 +8,15 @@ import (
 	"os"
 	"strings"
 
-	"github.com/yznts/oxigen/imgops"
+	_ "image/gif"  // Import GIF decoder
+	_ "image/jpeg" // Import JPEG decoder
+	_ "image/png"  // Import PNG decoder
+
+	_ "golang.org/x/image/webp"
+
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
+	"github.com/yznts/oxigen/imgops"
 	"go.kyoto.codes/zen/v3/errorsx"
 	"go.kyoto.codes/zen/v3/httpx"
 	"go.kyoto.codes/zen/v3/logic"
@@ -108,11 +114,15 @@ func Generator(w http.ResponseWriter, r *http.Request) {
 	// Background
 	if query.Background != "" {
 		// Load background
+		// ...existing code...
+		fmt.Printf("Loading background from: %s\n", query.Background)
 		bg, cleanup, err := imgops.GetRemote(query.Background)
 		if err != nil {
+			fmt.Printf("Failed to load background from %s: %v\n", query.Background, err)
 			http.Error(w, fmt.Sprintf("Error loading background: %v", err), http.StatusBadRequest)
 			return
 		}
+		// ...existing code...
 		defer cleanup()
 		// Resize
 		bg = imaging.Fill(bg, img.Width(), img.Height(), imaging.Center, imaging.Lanczos)
@@ -207,7 +217,7 @@ func Generator(w http.ResponseWriter, r *http.Request) {
 		img.DrawImage(logo, int(x), int(y))
 	}
 	// Generate unique og file
-	ogfile := errorsx.Must(os.CreateTemp("/tmp", "*.oxigen.tmp"))
+	ogfile := errorsx.Must(os.CreateTemp("./tmp", "*.oxigen.tmp"))
 	// Defer clean up
 	defer os.Remove(ogfile.Name())
 	// Save resulting image to generated file
