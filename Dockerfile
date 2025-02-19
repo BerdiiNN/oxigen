@@ -22,6 +22,7 @@ FROM alpine
 # Copy app
 WORKDIR /app
 COPY --from=build /src /app
+RUN mkdir - p ./tmp ./assets/dist/fonts
 
 # Command
 CMD ["./oxigen", "-http", "0.0.0.0:80"]
